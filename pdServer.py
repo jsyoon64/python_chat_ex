@@ -52,6 +52,8 @@ class CtrServer:
     def handler(self, c, a):
         while True:
             data = c.recv(1024)
+            if not data:
+                break
             print(data.decode("utf-8"))
 
     def run(self):

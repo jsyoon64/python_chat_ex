@@ -8,9 +8,13 @@ class Client:
     def sendMsg(self):
         while True:
             id = input("")
-            data = 'SPP-CG'+ id + '    '
-            #self.sock.send(bytes(input(""), 'utf-8'))
-            self.sock.send(bytes(data, 'utf-8'))
+            if id == 'quit':
+                self.sock.close()
+
+            else:
+                data = 'SPP-CG' + id + '    '
+                # self.sock.send(bytes(input(""), 'utf-8'))
+                self.sock.send(bytes(data, 'utf-8'))
 
     def __init__(self, address):
         self.sock.connect(address)
@@ -23,7 +27,7 @@ class Client:
             data = self.sock.recv(1024)
             if not data:
                 break
-                
+
             if(PORT == 4100):
                 data1 = pickle.loads(data)
                 print(data1)
