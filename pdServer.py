@@ -4,7 +4,7 @@ from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import pickle
 
-def_control = {'PDxx':{'PA':0,'PB':0,'LED':0,'STYLE':0}}
+def_control = {'PDxx':{'PA':0,'PB':0,'LED':0,'STYLE':0, 'CTR':'X'}}
 clientLists = {}
 ctrClients = {}
 fieldPA = 0x01
@@ -41,12 +41,17 @@ class Server:
 
                 self.StatusSet(data[6:10].decode("utf-8"), data[10])
 
+                # 응답 part이므로 제어 메시지 송신 부분
+                if(clientLists[data[6:10].decode("utf-8")]['CTR'] == 'X'):
+                    c.send(data)
+                else:
+                    c.send(bytes(clientLists[data[6:10].decode("utf-8")]['CTR'], 'utf-8'))
+                    clientLists[data[6:10].decode("utf-8")]['CTR'] = 'X'
+                #c.close()
+
                 for sock in ctrClients:
                     data1 = pickle.dumps(clientLists)
                     sock.send(data1)
-
-                c.send(data)
-                #c.close()
 
                 print("Model:"+data[0:6].decode("utf-8"), "ID:"+data[6:10].decode("utf-8"), end=" ")
                 print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
@@ -75,7 +80,11 @@ class CtrServer:
             data = c.recv(1024)
             if not data:
                 break
+
+            # TODO
+            # 제어 값 수신 처리 필요
             print(data.decode("utf-8"))
+            clientLists['PD01']['CTR'] = 'AAAAAAAAAAAA'
 
     def run(self):
         while True:
