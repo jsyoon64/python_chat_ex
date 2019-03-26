@@ -80,7 +80,7 @@ class CtrServer:
             # TODO
             # 제어 값 수신 처리 필요
             print(data.decode("utf-8"))
-            clientLists['PD01']['CTR'] = 'AAAAAAAAAAAA'
+            #clientLists['PD01']['CTR'] = 'AAAAAAAAAAAA'
 
     def run(self):
         while True:
