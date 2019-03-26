@@ -7,6 +7,10 @@ import pickle
 def_control = {'PDxx':{'PA':0,'PB':0,'LED':0,'STYLE':0}}
 clientLists = {}
 ctrClients = {}
+fieldPA = 0x01
+fieldPB = 0x02
+fieldLED = 0x10
+fieldSTYLE = 0x60
 
 class Server:
     sock = socket(AF_INET,SOCK_STREAM)
@@ -14,6 +18,17 @@ class Server:
     def __init__(self):
         self.sock.bind(('0.0.0.0',4000))
         self.sock.listen(1)
+
+    def StatusSet(self,id, val):
+        if ((val & fieldPA) == fieldPA):
+            clientLists[id]['PA'] = 1
+        if ((val & fieldPB) == fieldPB):
+            clientLists[id]['PB'] = 1
+        if ((val & fieldLED) == fieldLED):
+            clientLists[id]['LED'] = 1
+        ledStyle = val & fieldSTYLE
+        ledStyle = ledStyle >> 5
+        clientLists[id]['STYLE'] = ledStyle
 
     def handler(self, c, a):
         while True:
@@ -23,19 +38,22 @@ class Server:
             else :
                 if(data[6:10].decode("utf-8") not in clientLists):
                     clientLists[data[6:10].decode("utf-8")] = def_control['PDxx'].copy()
-                    for sock in ctrClients:
-                        data1 = pickle.dumps(clientLists)
-                        sock.send(data1)
+
+                self.StatusSet(data[6:10].decode("utf-8"), data[10])
+
+                for sock in ctrClients:
+                    data1 = pickle.dumps(clientLists)
+                    sock.send(data1)
 
                 c.send(data)
                 #c.close()
 
-        print("Model:"+data[0:6].decode("utf-8"), "ID:"+data[6:10].decode("utf-8"), end=" ")
-        print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
-        if(data[13] != 0):
-            print(data[14:].decode("utf-8"))
-        else:
-            print("HeartBeat")
+                print("Model:"+data[0:6].decode("utf-8"), "ID:"+data[6:10].decode("utf-8"), end=" ")
+                print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
+                if(data[13] != 0):
+                    print(data[14:].decode("utf-8"))
+                else:
+                    print("HeartBeat")
 
     def run(self):
         while True:

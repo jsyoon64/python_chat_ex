@@ -13,7 +13,7 @@ class Client:
                 break
 
             else:
-                data = 'SPP-CG' + id + '    '
+                data = 'SPP-CG' + id + 'AAAA'
                 # self.sock.send(bytes(input(""), 'utf-8'))
                 self.sock.send(bytes(data, 'utf-8'))
 
