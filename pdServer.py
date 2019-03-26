@@ -20,15 +20,11 @@ class Server:
         self.sock.listen(1)
 
     def StatusSet(self,id, val):
-        if ((val & fieldPA) == fieldPA):
-            clientLists[id]['PA'] = 1
-        if ((val & fieldPB) == fieldPB):
-            clientLists[id]['PB'] = 1
-        if ((val & fieldLED) == fieldLED):
-            clientLists[id]['LED'] = 1
-        ledStyle = val & fieldSTYLE
-        ledStyle = ledStyle >> 5
-        clientLists[id]['STYLE'] = ledStyle
+        #value_when_true if condition else value_when_false
+        clientLists[id]['PA'] = 1 if ((val & fieldPA) == fieldPA) else 0
+        clientLists[id]['PB'] = 1 if ((val & fieldPB) == fieldPB) else 0
+        clientLists[id]['LED'] = 1 if ((val & fieldLED) == fieldLED) else 0
+        clientLists[id]['STYLE'] = (val & fieldSTYLE) >> 5
 
     def handler(self, c, a):
         while True:
