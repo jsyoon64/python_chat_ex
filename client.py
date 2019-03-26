@@ -10,6 +10,7 @@ class Client:
             id = input("")
             if id == 'quit':
                 self.sock.close()
+                break
 
             else:
                 data = 'SPP-CG' + id + '    '

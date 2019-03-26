@@ -18,7 +18,7 @@ class Server:
     def handler(self, c, a):
         data = c.recv(1024)
         c.send(data)
-        c.close()
+        #c.close()
         print("Model:"+data[0:6].decode("utf-8"), "ID:"+data[6:10].decode("utf-8"), end=" ")
         print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
         if(data[13] != 0):

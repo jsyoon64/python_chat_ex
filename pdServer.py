@@ -16,16 +16,19 @@ class Server:
         self.sock.listen(1)
 
     def handler(self, c, a):
-        data = c.recv(1024)
+        while True:
+            data = c.recv(1024)
+            if not data:
+                break
+            else :
+                if(data[6:10].decode("utf-8") not in clientLists):
+                    clientLists[data[6:10].decode("utf-8")] = def_control['PDxx'].copy()
+                    for sock in ctrClients:
+                        data1 = pickle.dumps(clientLists)
+                        sock.send(data1)
 
-        if(data[6:10].decode("utf-8") not in clientLists):
-            clientLists[data[6:10].decode("utf-8")] = def_control['PDxx'].copy()
-            for sock in ctrClients:
-                data1 = pickle.dumps(clientLists)
-                sock.send(data1)
-
-        c.send(data)
-        c.close()
+                c.send(data)
+                #c.close()
 
         print("Model:"+data[0:6].decode("utf-8"), "ID:"+data[6:10].decode("utf-8"), end=" ")
         print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
