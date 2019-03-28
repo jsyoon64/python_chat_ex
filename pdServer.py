@@ -36,29 +36,29 @@ class Server:
         while True:
             try:
                 data = c.recv(1024)
-                print(len(data), data)
+                #print(len(data), data)
                 if(len(data) < 13):
                     continue
             except:
-                if(self.id !=''):
+                if(id !=''):
                     del clientLists[id]
                 break
             else:
                 if not data:
                     break
                 else :
-                    self.id = data[6:10].decode("utf-8")
-                    if(self.id not in clientLists):
-                        clientLists[self.id] = def_control['PDxx'].copy()
+                    id = data[6:10].decode("utf-8")
+                    if(id not in clientLists):
+                        clientLists[id] = def_control['PDxx'].copy()
 
-                    self.StatusSet(self.id, data[10])
+                    self.StatusSet(id, data[10])
 
                     # 응답 part이므로 제어 메시지 송신 부분
-                    if(clientLists[self.id]['CTR'] == 'X'):
+                    if(clientLists[id]['CTR'] == 'X'):
                         c.send(data)
                     else:
-                        c.send(bytes(clientLists[self.id]['CTR'], 'utf-8'))
-                        clientLists[self.id]['CTR'] = 'X'
+                        c.send(bytes(clientLists[id]['CTR'], 'utf-8'))
+                        clientLists[id]['CTR'] = 'X'
                     #c.close()
 
                     data1 = pickle.dumps(clientLists)
@@ -66,7 +66,7 @@ class Server:
                         print(sock1)
                         sock1.send(data1)
 
-                    print("Model:"+data[0:6].decode("utf-8"), "ID:"+ self.id, end=" ")
+                    print("Model:"+data[0:6].decode("utf-8"), "ID:"+ id, end=" ")
                     print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
                     if(data[13] != 0):
                         print(data[14:].decode("utf-8"))
