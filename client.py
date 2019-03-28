@@ -11,7 +11,8 @@ class Client:
             if id == 'quit':
                 self.sock.close()
                 break
-
+            elif len(id) < 2:
+                continue
             else:
                 data = 'SPP-CG' + id + 'AAAA'
                 # self.sock.send(bytes(input(""), 'utf-8'))

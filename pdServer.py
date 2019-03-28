@@ -20,41 +20,58 @@ class Server:
         self.sock.listen(1)
 
     def StatusSet(self,id, val):
+        global clientLists
+        #global clientLists
         #value_when_true if condition else value_when_false
-        clientLists[id]['PA'] = 1 if ((val & fieldPA) == fieldPA) else 0
-        clientLists[id]['PB'] = 1 if ((val & fieldPB) == fieldPB) else 0
-        clientLists[id]['LED'] = 1 if ((val & fieldLED) == fieldLED) else 0
-        clientLists[id]['STYLE'] = (val & fieldSTYLE) >> 5
+        if(id in clientLists):
+            clientLists[id]['PA'] = 1 if ((val & fieldPA) == fieldPA) else 0
+            clientLists[id]['PB'] = 1 if ((val & fieldPB) == fieldPB) else 0
+            clientLists[id]['LED'] = 1 if ((val & fieldLED) == fieldLED) else 0
+            clientLists[id]['STYLE'] = (val & fieldSTYLE) >> 5
 
     def handler(self, c, a):
+        global clientLists, def_control, ctrClients
+        id = ''
+
         while True:
-            data = c.recv(1024)
-            if not data:
+            try:
+                data = c.recv(1024)
+                print(len(data), data)
+                if(len(data) < 13):
+                    continue
+            except:
+                if(self.id !=''):
+                    del clientLists[id]
                 break
-            else :
-                if(data[6:10].decode("utf-8") not in clientLists):
-                    clientLists[data[6:10].decode("utf-8")] = def_control['PDxx'].copy()
+            else:
+                if not data:
+                    break
+                else :
+                    self.id = data[6:10].decode("utf-8")
+                    if(self.id not in clientLists):
+                        clientLists[self.id] = def_control['PDxx'].copy()
 
-                self.StatusSet(data[6:10].decode("utf-8"), data[10])
+                    self.StatusSet(self.id, data[10])
 
-                # 응답 part이므로 제어 메시지 송신 부분
-                if(clientLists[data[6:10].decode("utf-8")]['CTR'] == 'X'):
-                    c.send(data)
-                else:
-                    c.send(bytes(clientLists[data[6:10].decode("utf-8")]['CTR'], 'utf-8'))
-                    clientLists[data[6:10].decode("utf-8")]['CTR'] = 'X'
-                #c.close()
+                    # 응답 part이므로 제어 메시지 송신 부분
+                    if(clientLists[self.id]['CTR'] == 'X'):
+                        c.send(data)
+                    else:
+                        c.send(bytes(clientLists[self.id]['CTR'], 'utf-8'))
+                        clientLists[self.id]['CTR'] = 'X'
+                    #c.close()
 
-                for sock in ctrClients:
                     data1 = pickle.dumps(clientLists)
-                    sock.send(data1)
+                    for sock1 in ctrClients:
+                        print(sock1)
+                        sock1.send(data1)
 
-                print("Model:"+data[0:6].decode("utf-8"), "ID:"+data[6:10].decode("utf-8"), end=" ")
-                print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
-                if(data[13] != 0):
-                    print(data[14:].decode("utf-8"))
-                else:
-                    print("HeartBeat")
+                    print("Model:"+data[0:6].decode("utf-8"), "ID:"+ self.id, end=" ")
+                    print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
+                    if(data[13] != 0):
+                        print(data[14:].decode("utf-8"))
+                    else:
+                        print("HeartBeat")
 
     def run(self):
         while True:
@@ -72,17 +89,27 @@ class CtrServer:
         self.sock.listen(1)
 
     def handler(self, c, a):
-        while True:
-            data = c.recv(1024)
-            if not data:
-                break
+        # 함수 내에서 global 변수를 접근 하는 경우 정확하게 명시 필요
+        # 즉 local 변수가 아니라는
+        global ctrClients
 
-            # TODO
-            # 제어 값 수신 처리 필요
-            print(data.decode("utf-8"))
-            #clientLists['PD01']['CTR'] = 'AAAAAAAAAAAA'
+        while True:
+            try:
+                data = c.recv(1024)
+            except:
+                ctrClients.clear()
+                break
+            else:
+                if not data:
+                    ctrClients.clear()
+                    break
+                # TODO
+                # 제어 값 수신 처리 필요
+                print(data.decode("utf-8"))
+                #clientLists['PD01']['CTR'] = 'AAAAAAAAAAAA'
 
     def run(self):
+        global ctrClients
         while True:
             client, client_addr = self.sock.accept()
             ctrClients[client] = client_addr[0]
