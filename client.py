@@ -14,7 +14,7 @@ class Client:
             elif len(id) < 2:
                 continue
             else:
-                data = 'SPP-CG' + id + 'AAAA'
+                data = 'SPP-CG' + id + chr(0x00)+chr(0x00)+chr(0x00)+chr(0x00)
                 # self.sock.send(bytes(input(""), 'utf-8'))
                 self.sock.send(bytes(data, 'utf-8'))
 
