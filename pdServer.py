@@ -64,6 +64,7 @@ class Server:
                     #c.close()
 
                     data1 = pickle.dumps(clientLists)
+                    #print('3',ctrClients)
                     for sock1 in ctrClients:
                         #print(sock1)
                         sock1.send(data1)
@@ -88,7 +89,7 @@ class CtrServer:
     sock = socket(AF_INET,SOCK_STREAM)
 
     def __init__(self):
-        self.sock.bind(('0.0.0.0',4100))
+        self.sock.bind(('0.0.0.0',3100))
         self.sock.listen(1)
 
     def handler(self, c, a):
@@ -101,14 +102,24 @@ class CtrServer:
                 ready_to_read, ready_to_write, in_error = \
                     select.select([c, ], [c, ], [], 2)
             except select.error:
-                ctrClients.clear()
+                del ctrClients[c]
+                #print('1',ctrClients)
                 c.shutdown(2) # 0 = done receiving, 1 = done sending, 2 = both
                 c.close()
                 break
             if len(ready_to_read) > 0:
-                data = c.recv(1024)
+                try:
+                    data = c.recv(1024)
+                except:
+                    del ctrClients[c]
+                    #print('2',ctrClients)
+                    c.shutdown(2)  # 0 = done receiving, 1 = done sending, 2 = both
+                    c.close()
+                    break
+
                 if not data:
-                    ctrClients.clear()
+                    del ctrClients[c]
+                    #print('2',ctrClients)
                     c.shutdown(2)  # 0 = done receiving, 1 = done sending, 2 = both
                     c.close()
                     break
