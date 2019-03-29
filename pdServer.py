@@ -1,7 +1,8 @@
 """Server for pd application."""
 
 from socket import AF_INET, socket, SOCK_STREAM
-from threading import Thread
+import select
+import threading
 import pickle
 import sys
 
@@ -36,17 +37,18 @@ class Server:
 
         while True:
             try:
-                data = c.recv(1024)
-                #print(len(data), data)
-                #if(len(data) < 13):
-                #    continue
-            except:
-                if(id !=''):
-                    del clientLists[id]
+                ready_to_read, ready_to_write, in_error = \
+                    select.select([c, ], [c, ], [], 2)
+            except select.error:
+                c.shutdown(2) # 0 = done receiving, 1 = done sending, 2 = both
+                c.close()
                 break
-            else:
+
+            if len(ready_to_read) > 0:
+                data = c.recv(1024)
                 if not data:
-                    sys.exit()
+                    c.shutdown(2)  # 0 = done receiving, 1 = done sending, 2 = both
+                    c.close()
                     break
                 else :
                     id = data[6:10].decode("utf-8")
@@ -67,22 +69,20 @@ class Server:
                         sock1.send(data1)
 
                     self.StatusSet(id, data[10])
-                    print("Model:"+data[0:6].decode("utf-8"), "ID:"+ id, end=" ")
+                    print(data[0:6].decode("utf-8"), id, end=" ")
                     print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
                     if(data[13] != 0):
                         print(data[14:].decode("utf-8"))
                     else:
                         print("HeartBeat")
 
-                    break
-
     def run(self):
         while True:
             client, client_addr = self.sock.accept()
-            cThread = Thread(args=(client, client_addr) , target=self.handler)
+            cThread = threading.Thread(args=(client, client_addr) , target=self.handler)
             #cThread.daemon = True
             cThread.start()
-            print(str(client_addr[0]) + ':' + str(client_addr[1]), ":", end='')
+            print(str(threading.active_count())+','+str(client_addr[0]) + ':' + str(client_addr[1]), end=' ')
 
 class CtrServer:
     sock = socket(AF_INET,SOCK_STREAM)
@@ -98,26 +98,32 @@ class CtrServer:
 
         while True:
             try:
-                data = c.recv(1024)
-            except:
+                ready_to_read, ready_to_write, in_error = \
+                    select.select([c, ], [c, ], [], 2)
+            except select.error:
                 ctrClients.clear()
-                sys.exit()
+                c.shutdown(2) # 0 = done receiving, 1 = done sending, 2 = both
+                c.close()
                 break
-            else:
+            if len(ready_to_read) > 0:
+                data = c.recv(1024)
                 if not data:
                     ctrClients.clear()
+                    c.shutdown(2)  # 0 = done receiving, 1 = done sending, 2 = both
+                    c.close()
                     break
-                # 제어 값 수신 처리 필요
-                #print(data.decode("utf-8"))
-                #print(data[0:10].decode("utf-8"))
-                clientLists['PD01']['CTR'] = data
+                else :
+                    # 제어 값 수신 처리 필요
+                    #print(data.decode("utf-8"))
+                    #print(data[0:10].decode("utf-8"))
+                    clientLists['PD01']['CTR'] = data
 
     def run(self):
         global ctrClients
         while True:
             client, client_addr = self.sock.accept()
             ctrClients[client] = client_addr[0]
-            cThread = Thread(args=(client, client_addr) , target=self.handler)
+            cThread = threading.Thread(args=(client, client_addr) , target=self.handler)
             #cThread.daemon = True
             cThread.start()
             print('ctrServer '+str(client_addr[0]) + ':' + str(client_addr[1]), " connected!")
@@ -125,8 +131,8 @@ class CtrServer:
 
 server = Server()
 ctrserver = CtrServer()
-ACCEPT_THREAD = Thread(target=server.run)
-ACCEPT_THREAD1 = Thread(target=ctrserver.run)
+ACCEPT_THREAD = threading.Thread(target=server.run)
+ACCEPT_THREAD1 = threading.Thread(target=ctrserver.run)
 ACCEPT_THREAD.start()
 ACCEPT_THREAD1.start()
 ACCEPT_THREAD.join()
