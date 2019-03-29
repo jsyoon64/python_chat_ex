@@ -3,6 +3,7 @@
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import pickle
+import sys
 
 def_control = {'PDxx':{'PA':0,'PB':0,'LED':0,'STYLE':0, 'CTR':'X'}}
 clientLists = {}
@@ -45,6 +46,7 @@ class Server:
                 break
             else:
                 if not data:
+                    sys.exit()
                     break
                 else :
                     id = data[6:10].decode("utf-8")
@@ -97,6 +99,7 @@ class CtrServer:
                 data = c.recv(1024)
             except:
                 ctrClients.clear()
+                sys.exit()
                 break
             else:
                 if not data:
@@ -113,7 +116,7 @@ class CtrServer:
             client, client_addr = self.sock.accept()
             ctrClients[client] = client_addr[0]
             cThread = Thread(args=(client, client_addr) , target=self.handler)
-            cThread.daemon = True
+            #cThread.daemon = True
             cThread.start()
             print('ctrServer '+str(client_addr[0]) + ':' + str(client_addr[1]), ":", end='')
 
