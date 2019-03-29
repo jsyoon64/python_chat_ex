@@ -38,8 +38,8 @@ class Server:
             try:
                 data = c.recv(1024)
                 #print(len(data), data)
-                if(len(data) < 13):
-                    continue
+                #if(len(data) < 13):
+                #    continue
             except:
                 if(id !=''):
                     del clientLists[id]
@@ -74,11 +74,13 @@ class Server:
                     else:
                         print("HeartBeat")
 
+                    break
+
     def run(self):
         while True:
             client, client_addr = self.sock.accept()
             cThread = Thread(args=(client, client_addr) , target=self.handler)
-            cThread.daemon = True
+            #cThread.daemon = True
             cThread.start()
             print(str(client_addr[0]) + ':' + str(client_addr[1]), ":", end='')
 
