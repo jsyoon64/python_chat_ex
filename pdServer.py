@@ -16,7 +16,7 @@ class Server:
     sock = socket(AF_INET,SOCK_STREAM)
 
     def __init__(self):
-        self.sock.bind(('0.0.0.0',4000))
+        self.sock.bind(('0.0.0.0',3000))
         self.sock.listen(1)
 
     def StatusSet(self,id, val):
@@ -51,21 +51,20 @@ class Server:
                     if(id not in clientLists):
                         clientLists[id] = def_control['PDxx'].copy()
 
-                    self.StatusSet(id, data[10])
-
                     # 응답 part이므로 제어 메시지 송신 부분
                     if(clientLists[id]['CTR'] == 'X'):
                         c.send(data)
                     else:
-                        c.send(bytes(clientLists[id]['CTR'], 'utf-8'))
+                        c.send(clientLists[id]['CTR'])
                         clientLists[id]['CTR'] = 'X'
                     #c.close()
 
                     data1 = pickle.dumps(clientLists)
                     for sock1 in ctrClients:
-                        print(sock1)
+                        #print(sock1)
                         sock1.send(data1)
 
+                    self.StatusSet(id, data[10])
                     print("Model:"+data[0:6].decode("utf-8"), "ID:"+ id, end=" ")
                     print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
                     if(data[13] != 0):
@@ -103,10 +102,10 @@ class CtrServer:
                 if not data:
                     ctrClients.clear()
                     break
-                # TODO
                 # 제어 값 수신 처리 필요
-                print(data.decode("utf-8"))
-                clientLists['PD01']['CTR'] = data.decode("utf-8")
+                #print(data.decode("utf-8"))
+                #print(data[0:10].decode("utf-8"))
+                clientLists['PD01']['CTR'] = data
 
     def run(self):
         global ctrClients
