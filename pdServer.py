@@ -80,7 +80,7 @@ class Server:
             cThread = Thread(args=(client, client_addr) , target=self.handler)
             cThread.daemon = True
             cThread.start()
-            print('Server '+str(client_addr[0]) + ':' + str(client_addr[1]), ":", end='')
+            print(str(client_addr[0]) + ':' + str(client_addr[1]), ":", end='')
 
 class CtrServer:
     sock = socket(AF_INET,SOCK_STREAM)
@@ -118,7 +118,7 @@ class CtrServer:
             cThread = Thread(args=(client, client_addr) , target=self.handler)
             #cThread.daemon = True
             cThread.start()
-            print('ctrServer '+str(client_addr[0]) + ':' + str(client_addr[1]), ":", end='')
+            print('ctrServer '+str(client_addr[0]) + ':' + str(client_addr[1]), " connected!")
 
 
 server = Server()
