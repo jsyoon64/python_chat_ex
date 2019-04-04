@@ -127,7 +127,9 @@ class CtrServer:
                     # 제어 값 수신 처리 필요
                     #print(data.decode("utf-8"))
                     #print(data[0:10].decode("utf-8"))
-                    clientLists['PD01']['CTR'] = data
+                    id = data[6:10].decode("utf-8")
+                    if(id in clientLists.keys()):
+                        clientLists[id]['CTR'] = data
 
     def run(self):
         global ctrClients
