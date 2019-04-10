@@ -71,7 +71,7 @@ class Server:
 
                     self.StatusSet(id, data[10])
                     print(data[0:6].decode("utf-8"), id, end=" ")
-                    print("OP:0x{}".format(data[10]), "Dev:0x{}".format(data[11]), "Type:0x{}".format(data[12]), end=" ")
+                    print("OP:0x{:x}".format(data[10]), "Dev:0x{:x}".format(data[11]), "Type:0x{:x}".format(data[12]), end=" ")
                     if(data[13] != 0):
                         print(data[14:].decode("utf-8"))
                     else:
